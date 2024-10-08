@@ -1,0 +1,69 @@
+#include <Wire.h>                 // Include Wire library for I2C communication
+#include <U8g2lib.h>              // Include U8g2 library for OLED display
+
+#define SCREEN_WIDTH 64           // Define width of the OLED display
+#define SCREEN_HEIGHT 48          // Define height of the OLED display
+
+#define BUTTON_PIN D3 // Pin connected to the button on the shield
+
+// Initialize U8g2 library for SSD1306 64x48 OLED display
+U8G2_SSD1306_64X48_ER_F_SW_I2C u8g2(U8G2_R0, /* clock=*/ D1, /* data=*/ D2, /* reset=*/ U8X8_PIN_NONE);
+
+void setup() {
+  pinMode(BUTTON_PIN, INPUT_PULLUP); // Set the button pin as input with internal pull-up resistor
+  u8g2.begin();
+
+}
+
+void loop() {
+  // Read the state of the PIR sensor
+  int buttonState = digitalRead(BUTTON_PIN);
+  
+  // Clear the buffer before drawing to OLED
+  u8g2.clearBuffer();
+
+  // Set font for OLED display
+  u8g2.setFont(u8g2_font_6x12_tf); // Choose a font
+
+  // Display sensor name
+  u8g2.setCursor(0, 10);
+  u8g2.print("Button");
+   
+if (buttonState == LOW) { // Button is pressed
+    // Check if it's a long press
+    if (isLongPress()) {
+      u8g2.setCursor(0, 30);
+      u8g2.print("Long");
+      u8g2.setCursor(0, 40);
+      u8g2.print("pressed");
+      delay(500);
+    } else {// Button is pressed once
+      u8g2.setCursor(0, 30);
+      u8g2.print("Switch");
+      u8g2.setCursor(0, 40);
+      u8g2.print("pushed");
+      delay(1000);
+    }
+  } else { // Button is not pressed
+    u8g2.setCursor(0, 30);
+    u8g2.print("Switch");
+    u8g2.setCursor(0, 40);
+      u8g2.print("released");
+    delay(500);
+  }
+  
+  // Update the OLED display with the buffer content
+  u8g2.sendBuffer();
+
+  delay(2000);  // Delay for 2 seconds before the next reading
+}
+
+bool isLongPress() {
+  unsigned long pressTime = millis();
+  while (digitalRead(BUTTON_PIN) == LOW) {
+    if (millis() - pressTime > 1000) { // Long press duration (adjust as needed)
+      return true;
+    }
+  }
+  return false;
+}
