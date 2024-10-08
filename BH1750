@@ -1,0 +1,49 @@
+#include <Wire.h>                 // Include Wire library for I2C communication
+#include <U8g2lib.h>              // Include U8g2 library for OLED display
+#include <BH1750.h>               // Include BH1750 library for light sensor
+
+#define SCREEN_WIDTH 64           // Define width of the OLED display
+#define SCREEN_HEIGHT 48          // Define height of the OLED display
+
+// Initialize U8g2 library for SSD1306 64x48 OLED display
+U8G2_SSD1306_64X48_ER_F_SW_I2C u8g2(U8G2_R0, /* clock=*/ D1, /* data=*/ D2, /* reset=*/ U8X8_PIN_NONE);
+
+BH1750 lightMeter;                // Create a BH1750 object
+
+void setup() {
+  Wire.begin(D2, D1);             // Initialize I2C communication (D2=SDA, D1=SCL)
+  u8g2.begin();                   // Initialize OLED display
+
+  if (!lightMeter.begin(BH1750::CONTINUOUS_HIGH_RES_MODE)) {  // Initialize BH1750 sensor
+    Serial.println("Error initializing BH1750");
+    while (1);  // Stop if sensor initialization fails
+  }
+
+  Serial.begin(9600);             // Start serial communication for debugging
+}
+
+void loop() {
+  float lux = lightMeter.readLightLevel();  // Read light level in lux
+
+  // Clear the buffer before drawing to OLED
+  u8g2.clearBuffer();
+
+  // Set font for OLED display
+u8g2.setFont(u8g2_font_6x12_tf); // Choose a font
+
+  // Display sensor name
+  u8g2.setCursor(0, 10);
+  u8g2.print("BH1750");
+
+  // Display label and light level value (lux)
+  u8g2.setCursor(0, 25);
+  u8g2.print("Light: ");
+  u8g2.setCursor(0, 45);
+  u8g2.print(lux);
+  u8g2.print(" Lx");
+
+  // Update the OLED display with the buffer content
+  u8g2.sendBuffer();
+
+  delay(2000);  // Delay for 2 seconds before the next reading
+}
