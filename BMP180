@@ -1,0 +1,54 @@
+#include <Wire.h> // Include wire library for I2C communication
+#include <U8g2lib.h> // Include library for OLED display
+#include <Adafruit_BMP085.h> // Use Adafruit_BMP180 if your sensor is BMP180
+
+#define SCREEN_WIDTH 64  // Define width of the smaller 0.66" OLED screen
+#define SCREEN_HEIGHT 48 // Define height of the smaller 0.66" OLED screen
+
+// Initialize the display for the smaller 64x48 OLED
+U8G2_SSD1306_64X48_ER_F_SW_I2C u8g2(U8G2_R0, /* clock=*/ D1, /* data=*/ D2, /* reset=*/ U8X8_PIN_NONE); 
+
+Adafruit_BMP085 bmp; 
+
+void setup() {
+  Serial.begin(9600);
+  if (!bmp.begin()) { // Check if BMP180 sensor is found
+    Serial.println("Could not find BMP180 or BMP085 sensor!");
+    while (1) {}
+  }
+
+  u8g2.begin(); // Initialize the OLED display
+}
+
+void loop() {
+  // Read sensor values
+  float temperature = bmp.readTemperature(); // Read temperature
+  float pressure = bmp.readPressure() / 100.0; // Read pressure in hPa
+
+  // Clear the buffer to prepare for drawing
+  u8g2.clearBuffer(); 
+
+  // Set a slightly smaller font (5x8 pixels) to fit more text on the smaller OLED screen
+  u8g2.setFont(u8g2_font_5x8_tf); 
+
+  // Display the "BMP180" label on the first line
+  u8g2.setCursor(0, 10); 
+  u8g2.print("BMP180");
+
+  // Display temperature label "T:" followed by the value on the second line
+  u8g2.setCursor(0, 25); 
+  u8g2.print("T: ");
+  u8g2.print(temperature);
+  u8g2.print(" C");
+
+  // Display pressure label "H:" followed by the value on the third line
+  u8g2.setCursor(0, 40); 
+  u8g2.print("P: ");
+  u8g2.print(pressure);
+  u8g2.print(" hPa");
+
+  // Send the buffer to the display (this will update the screen)
+  u8g2.sendBuffer(); 
+
+  delay(2000); // Delay for 2 seconds before updating again
+}
